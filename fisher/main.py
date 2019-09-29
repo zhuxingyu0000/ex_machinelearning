@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def fisher_trainingkcross(dataframe, classarray):  # 训练并且使用k折交叉验证验证训练结果，这里取k=10
+def fisher_trainingkcross(dataframe, classarray, dataname):  # 训练并且使用k折交叉验证验证训练结果，这里取k=10
     dataframe = np.array(dataframe)
     k = 10  # k折交叉验证取k=10
     num = dataframe.shape[0]  # 总数据
@@ -126,14 +126,17 @@ def fisher_trainingkcross(dataframe, classarray):  # 训练并且使用k折交�
                 plt.title('The classification between %s and %s' % (classarray[index1], classarray[index2]))
                 plt.axhline(0, color='red', linestyle='--')
                 plt.show()
-                x1 = df[df['Class'] == classarray[index1]]
-                x2 = df[df['Class'] == classarray[index2]]
-                ax2 = sns.distplot(x1["ProjectionPoint"], rug=True, hist=False, label=classarray[index1])
-                ax2 = sns.distplot(x2["ProjectionPoint"], rug=True, hist=False, label=classarray[index2])
-                plt.title('The classification between %s and %s' % (classarray[index1], classarray[index2]))
-                plt.show()
-
-    return np.mean(np.array(correctrate))
+    x = np.array([i+1 for i in range(k)])
+    avr = np.mean(np.array(correctrate))
+    plt.ylim([0, 1.1])
+    plt.plot(x, np.array(correctrate), linewidth=3, color='r', marker='o',
+             markerfacecolor='blue', markersize=12)
+    plt.xticks(x)
+    for a, b in zip(x, np.array(correctrate)):
+        plt.text(a, b, '%.2f' % b, ha='center', va='bottom', fontsize=12)
+    plt.title('The correctrate of the classification in %s\naverage %f' % (dataname, avr))
+    plt.show()
+    return avr
 
 
 if (not os.path.exists('data/iris.data')) or (not os.path.exists('data/sonar.all-data')):
@@ -144,12 +147,12 @@ iris_data = pd.read_csv('data/iris.data')
 np.random.seed(int(time.time()))
 sampler = np.random.permutation(iris_data.shape[0])
 iris_data = iris_data.take(sampler)
-correctrate = fisher_trainingkcross(iris_data, ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'])
+correctrate = fisher_trainingkcross(iris_data, ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'], 'iris')
 print("The correct rate in iris data is:", correctrate)
 
 sonar_data = pd.read_csv('data/sonar.all-data')
 sampler = np.random.permutation(sonar_data.shape[0])
 sonar_data = sonar_data.take(sampler)
-correctrate = fisher_trainingkcross(sonar_data, ['M', 'R'])
+correctrate = fisher_trainingkcross(sonar_data, ['M', 'R'], 'sonar')
 
 print("The correct rate in sonar data is:", correctrate)
